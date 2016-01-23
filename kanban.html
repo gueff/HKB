@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>openKanban</title>
+		<title>Kanbanix :: HTML5 Kanban Board</title>
 
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
@@ -32,7 +32,9 @@
 				display: block;
 				z-index: -1;
 			}
-			
+			.padding0_25 {
+				padding: 0 25px;
+			}
 			.lists {
 				/*background-color: palegoldenrod;*/
 				/*border: 1px solid red;*/
@@ -181,38 +183,37 @@
 	</head>
 
 	<body>
-
-		<!--
-		http://jsfiddle.net/NRkwx/
-		-->
 				
 		<nav class="navbar navbar-default navbar-fixed-top">
 			<div class="container-fluid">
 				<div class="navbar-header">
-					<a class="navbar-brand" href="#">
-						Kanban Board
-					</a>
+					<h3>Kanbanix <small>HTML5 Kanban Board</small></h3>
 				</div>	
 				
 				<!-- add button -->
-				<div id="addList" class="addItem form-inline">
+				<div id="addList" class="addItem form-inline padding0_25 pull-left">
 					<button id="addListButton" class="btn btn-default pull-left">
 						<i class="fa fa-plus"></i> List
 					</button>
 					<input id="addListInput" type="text" class="form-control pull-left hide" value="" placeholder="name">
 				</div>	
-				<!--<input type=color pattern="#[a-f0-9]{6}" title="hexadecimal color" placeholder="#000000">-->
-				<input type="color" value="#ffff88" list="colors" />
+<!--				<input type="color" value="#ffff88" list="colors" />
 				<datalist id="colors">
 					<option>#dff0d8</option>
 					<option>#d9edf7</option>
 					<option>#ffff88</option>
 					<option>#f2dede</option>
 					<option>#808080</option>
-				</datalist>
+				</datalist>-->
 			</div>
 		</nav>			
 
+		<nav class="navbar navbar-default navbar-fixed-bottom">
+			<div class="container-fluid pull-right"><br />
+				coded by <a class="label label-success" href="http://www.ueffing.net">ueffing.net</a>
+			</div>
+		</nav>		
+		
 		<div id="board" class="container-fluid">
 
 			<div class="lists">		
@@ -287,8 +288,9 @@ visit https://www.mymvc.org
 					</div>
 					<div class="clearfix"></div>
 					<a class="add" href="#">
-						Add a card…
+						<button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
 					</a>
+					<div class="clearfix"><br></div>
 				</div>
 
 				<!-- Doing -->
@@ -300,8 +302,9 @@ visit https://www.mymvc.org
 					</div>
 					<div class="clearfix"></div>
 					<a class="add" href="#">
-						Add a card…
+						<button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
 					</a>
+					<div class="clearfix"><br></div>
 				</div>
 
 				<!-- Done -->
@@ -313,8 +316,9 @@ visit https://www.mymvc.org
 					</div>
 					<div class="clearfix"></div>
 					<a class="add" href="#">
-						Add a card…
+						<button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
 					</a>
+					<div class="clearfix"><br></div>
 				</div>
 
 				<!-- Rejected -->
@@ -326,8 +330,9 @@ visit https://www.mymvc.org
 					</div>
 					<div class="clearfix"></div>
 					<a class="add" href="#">
-						Add a card…
+						<button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
 					</a>
+					<div class="clearfix"><br></div>
 				</div>
 
 			</div>
@@ -367,8 +372,9 @@ visit https://www.mymvc.org
 				</div>
 				<div class="clearfix"></div>
 				<a class="add" href="#">
-					Add a card…
+					<button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
 				</a>
+				<div class="clearfix"><br></div>
 			</div>			
 		</div>
 		<div id="templateCard" class="template">
