@@ -205,6 +205,13 @@
 					<option>#f2dede</option>
 					<option>#808080</option>
 				</datalist>-->
+
+				<div class="addItem form-inline padding0_25 pull-left">
+					<button id="emptyLocalStorage" class="btn btn-default pull-left">
+						<i class="fa fa-trash"></i> flush Saved Settings
+					</button>
+					<input id="addListInput" type="text" class="form-control pull-left hide" value="" placeholder="name">
+				</div>	
 			</div>
 		</nav>			
 
@@ -222,7 +229,6 @@
 
 			<div class="lists">		
 
-				<!-- Bugs -->
 				<div id="bugs" class="list">
 					<div class="foo">
 						<h1>Bugs</h1>
@@ -271,7 +277,6 @@ visit http://www.netpanzer.info
 					<div class="clearfix"><br></div>
 				</div>
 
-				<!-- Feature Request -->
 				<div id="feature_requests" class="list">
 					<div class="foo">
 						<h1>Feature Requests</h1>
@@ -297,7 +302,6 @@ visit https://www.mymvc.org
 					<div class="clearfix"><br></div>
 				</div>
 
-				<!-- Doing -->
 				<div id="doing" class="list">
 					<div class="foo">
 						<h1>Doing</h1>
@@ -311,7 +315,6 @@ visit https://www.mymvc.org
 					<div class="clearfix"><br></div>
 				</div>
 
-				<!-- Done -->
 				<div id="done" class="list">
 					<div class="foo">
 						<h1>Done</h1>
@@ -325,7 +328,6 @@ visit https://www.mymvc.org
 					<div class="clearfix"><br></div>
 				</div>
 
-				<!-- Rejected -->
 				<div id="rejected" class="list">
 					<div class="foo">
 						<h1>Rejected</h1>
@@ -404,10 +406,13 @@ visit https://www.mymvc.org
 			</form>	
 		</div>	
 
+		<script src="//cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js" type="text/javascript"></script>
 		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
 		<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
+
 		<script src="//cdn.jsdelivr.net/jstorage/0.4.12/jstorage.min.js" type="text/javascript"></script>
+		
 		<script src="//cdn.rawgit.com/showdownjs/showdown/1.0.2/dist/showdown.min.js" type="text/javascript"></script>
 		
 		<script>
@@ -415,12 +420,40 @@ visit https://www.mymvc.org
 			// autolink
 			(function(){var h=[].slice;String.prototype.autoLink=function(){var b,f,d,a,e,g;a=1<=arguments.length?h.call(arguments,0):[];e=/(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/gi;if(!(0<a.length))return this.replace(e,"$1<a href='$2'>$2</a>");d=a[0];f=function(){var c;c=[];for(b in d)g=d[b],"callback"!==b&&c.push(" "+b+"='"+g+"'");return c}().join("");return this.replace(e,function(c,b,a){c=("function"===typeof d.callback?d.callback(a):void 0)||"<a href='"+a+"'"+f+">"+a+"</a>";return""+b+c})}}).call(this);
 
+			// local storage saver
+			function getFromLocalStorage()
+			{
+				var sValue = $.jStorage.get('HKB');
+				
+				if (sValue) {
+					$('#board .lists').html(sValue);
+				}
+			}
+			
+			function saveToLocalStorage()
+			{
+				var oBoard = $('#board .lists').html();
+				$.jStorage.set('HKB', oBoard);
+			}
+			
+			function emptyLocalStorage()
+			{
+				$.jStorage.deleteKey('HKB');
+			}
+
 			$(document).ready(function() {
 
+				getFromLocalStorage();
+				
 				var iCard = 999;
 
 				//If you have a highly dynamic page, you might try this option. It renders positions every time you move the mouse.
 				//if(draggable.options.refreshPositions) $.ui.ddmanager.prepareOffsets(draggable, event);
+
+				$('#emptyLocalStorage').on('click', function(event){
+					emptyLocalStorage();
+					location.reload();
+				});
 
 				/**
 				 * add list
@@ -540,12 +573,15 @@ visit https://www.mymvc.org
 						connectWith: "ul",
 						start: function(event, ui) {
 							ui.item.startPos = ui.item.index();
+							saveToLocalStorage();
 						},	
 						update: function(event, ui) {						
+							saveToLocalStorage();
 						},					
 						stop: function(event, ui) {
 							getAllPositions();
-						}						
+							saveToLocalStorage();
+						}									
 					});
 				}
 				
@@ -599,6 +635,8 @@ visit https://www.mymvc.org
 						
 						// remove buttons [Add] [undo]
 						$('.add' + iCardId).remove();
+						
+						saveToLocalStorage();
 					});
 				}
 				
@@ -613,8 +651,6 @@ visit https://www.mymvc.org
 					else {
 						var myTarget = ' .add';
 					}
-					
-					console.log(myTarget);
 					
 					$(myTarget).on ('click', function (event){
 						
@@ -645,6 +681,8 @@ visit https://www.mymvc.org
 						cardSortable();						
 						
 						$('#' + sListId + ' .foo .card .cardTitle textarea').focus();	
+						
+						saveToLocalStorage();
 					});
 				}
 
@@ -653,10 +691,12 @@ visit https://www.mymvc.org
 					$('.undo').on ('click', function (event){
 						var iCard = $(this).attr('data-id');						
 						$('.' + iCard).remove();
+						saveToLocalStorage();
 					});
 					
 					$('#back').on ('click', function (event){
 						$('.lists .list .templateCard').remove();
+						saveToLocalStorage();
 					});					
 				}
 				
