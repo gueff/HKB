@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HKB :: HTML5 Kanban Board</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css">
+    <style>
+        body {
+            background-color: aliceblue;
+        }
+
+        #board {
+            margin: 80px 0 0 0;
+            /*border: 1px solid blue;*/
+            height: 1px; /* ! */
+            width: 200%;
+        }
+
+        #back{
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            background-color: transparent;
+            width: 6000px;
+            height: 6000px;
+            display: block;
+            z-index: -1;
+        }
+        .padding0_25 {
+            padding: 0 25px;
+        }
+        .lists {
+            /*background-color: palegoldenrod;*/
+            /*border: 1px solid red;*/
+            /*				height: 500px;*/
+        }
+
+        .list {
+            float: left;
+            margin: 0 10px 30px 0;
+            box-shadow: 0px 0px 10px 1px rgba(150, 150, 150, 0.25);
+            background: white;
+            /* default */
+
+            border: 1px solid silver;
+            border-radius: 3px;
+            cursor: move;
+            z-index: 1;
+            /*overflow: auto !important;*/
+        }
+        .list h1 {
+            margin: 0;
+            /*border-bottom: 1px dotted silver;*/
+            background-color: lightgray;
+            padding: 2px;
+            font-size: 12pt;
+            text-align: right;
+            /*				position: absolute;
+                            right: 10px;
+                            top: 0px;*/
+            border-radius: 3px;
+        }
+        .foo {
+            display: inline-block;
+            margin: 0;
+            /*border: 1px solid silver;*/
+            /*background: white;  default */
+
+            padding: 5px;
+            width: 275px;
+            position: relative;
+            /*min-height: 15px;*/
+            z-index: 1;
+        }
+
+        .foo.droppable {
+            /*box-shadow: 1px 1px 13px;*/
+
+            box-shadow: 0px 0px 10px 5px rgba(150, 50, 50, 0.5);
+        }
+
+        .card {
+            display: inline-block;
+            vertical-align: top;
+            /*margin: 12px 5px;*/
+            padding: 10px;
+            /*width: 100px;*/
+            min-height: 10px;
+            max-height: 150px;
+            overflow: auto;
+            color: black;
+            cursor: pointer;
+            text-align: left;
+            font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande",
+            sans-serif;
+            box-shadow: 2px 2px 2px #eee;
+        }
+
+        .bg-default {
+            background-color: #ff8;
+        }
+        .cardContent {
+            display: none;
+        }
+
+        .add {
+            margin: 0 0 0 10px;
+        }
+
+        .template {
+            display: none;
+        }
+        .user {
+            float: right;
+        }
+        .cardTitle textarea {
+            background-color: transparent;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            border: 1px solid transparent !important;
+            overflow: hidden;
+            word-wrap: break-word;
+            height: 80px;
+        }
+
+        textarea,
+        textarea:focus {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+        }
+
+
+        .sortable {
+            list-style-type: none;
+            margin: 0;
+            padding: 10px 0;
+            float: left;
+            margin-right: 10px;
+            width: 100%;
+        }
+
+        .sortable li {
+            margin: 10px 5px;
+            width: 250px;
+        }
+        .center {
+            padding: 10px;
+            margin: 0 auto !important;
+        }
+        .ui-state-highlight {
+            float: left;
+            margin: 0 10px 30px 0;
+            /*box-shadow: 0px 0px 10px 1px rgba(150, 150, 150, 0.25);*/
+            background-color: transparent;
+
+            height: 1px;
+            width: 275px;
+            border: 1px solid transparent;
+            /*border-radiuss: 3px;*/
+        }
+
+        .addItem {
+            margin: 8px 0;
+        }
+        .hide {
+            display: none !important;
+        }
+    </style>
+
+    <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <h3>HKB <small>HTML5 Kanban Board</small></h3>
+        </div>
+
+        <!-- add button -->
+        <div id="addList" class="addItem form-inline padding0_25 pull-left">
+            <button id="addListButton" class="btn btn-default pull-left">
+                <i class="fa fa-plus"></i> List
+            </button>
+            <input id="addListInput" type="text" class="form-control pull-left hide" value="" placeholder="name">
+        </div>
+        <!--				<input type="color" value="#ffff88" list="colors" />
+                        <datalist id="colors">
+                            <option>#dff0d8</option>
+                            <option>#d9edf7</option>
+                            <option>#ffff88</option>
+                            <option>#f2dede</option>
+                            <option>#808080</option>
+                        </datalist>-->
+
+        <div class="addItem form-inline padding0_25 pull-left">
+            <button id="emptyLocalStorage" class="btn btn-default pull-left">
+                <i class="fa fa-trash"></i> flush Saved Settings
+            </button>
+            <input id="addListInput" type="text" class="form-control pull-left hide" value="" placeholder="name">
+        </div>
+    </div>
+</nav>
+
+<nav class="navbar navbar-default navbar-fixed-bottom">
+    <div class="container-fluid pull-right"><br />
+        See at <i class="fa fa-github-square"></i> github: <a href="https://github.com/gueff/HKB"> https://github.com/gueff/HKB</a>&nbsp;|&nbsp;
+        <a href="http://www.ueffing.net">
+            <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAPCAMAAAAiTUTqAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAX1QTFRF//7++uzs+urq+uvr+enp/fj4////+/Hx+unp+/Dw/fX19M/P8cHB9dTU/vr6/PPzzjExyBERyRkZyRcXyhoaxgsL7K+v11JSyAwMyxoayhcXyxsbxwgI3nBw2VtbyxkZxgAAyAkJ0DAw7rW1//39yh8fwQAAwwICwwAAwwMDvwAA66qq00JCwgAAxQMDxQAAxQEBxAAAzCEh1UhI0TU1xgICxgEBxAQE88nJ/ff3zSgoxAEBxQQE101NxwQExwMDzB4e8cTE55WVyAYG3GxszSkpxAICxQIC105O3Wtr5pKS1klJ3Gdn55SU1EBA3Who0z8/1D8//fn5zSoq/v7+zzQ07K6u3Wlp1lhYwAAAxgYG5peXxwoKxwYGxwUF0z4+8MLCwgICwwEBzSsrzCYmzCQk2Fpa5I2NzzMz77q60j8/yBUVxgwM44qK/vv722NjzB8fzy0tzyoq0C0tzB0d33d36Z+fyxwczywszSEh11NT+efn9tnZ/vz8/v39ARKJwQAAAAFiS0dEBmFmuH0AAAAJcEhZcwAADsQAAA7EAZUrDhsAAAEfSURBVBjTfdDnT8JQFAXwZ4EjThS3oFbF+hyvWJU6Cq2i4t6i1oED96gKboW/nZaEpAnR5H64yS/n5OYSUsJxnMPpAkqdDs7hLgPKKyqrqkFAPDW13rr6hkagqbml1edv49o7/HxnVzcCxNMj9NK+/gFgkInBIWnYNzIqhWQ6Ng4yMclEJSyYuQhVZS04NY0oU+UZNgvimmMxad6yBarxKlsElpjGa3TZbpG8rQCreVsrzq0XbOMf2yzutNvW9h9mdu7E87Zb6Nyz3YJ9/UARzdzhkayFjql5Z5QmQgnpxLTTM+FcEZIXyUumSKJ+BVzrYSkm3IAEcHt3/+CNPxpPzy+p9Osb8P6RTn1+fVvfBvn5dQPEyBjmZIGstRkZ5ACS8EtdciY8CgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNi0wMS0yNlQxMjo0NzoxOSswMTowMBYfYtoAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTYtMDEtMjZUMTI6NDM6NDUrMDE6MDDh6R4MAAAAAElFTkSuQmCC">
+            ueffing.net
+        </a>
+    </div>
+</nav>
+
+<div id="board" class="container-fluid">
+
+    <div class="lists">
+
+        <div id="bugs" class="list">
+            <div class="foo">
+                <h1>Bugs</h1>
+                <ul class="sortable droptrue">
+                    <li id="100" class="card bg-danger" data-toggle="modal"
+                        data-target="#myModal">
+                        <div class="cardTitle">
+                            webpanzer.info
+                        </div>
+                        <div class="cardContent">
+                            see http://www.webpanzer.info
+                        </div>
+                        <div class="user">
+                            <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAADdgAAA3YBfdWCzAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAATJSURBVHjaxZdbiBtVHMa/c85MJsnkstlst9vtVrzg4qWttfUKPhSUIlgqfRCrCOJDqxX0Rfumj6Lgg9CFvqnFKmLBlyouKAj6UBWsFHqRtrq17d432+4mm0zmnDnneM5M2u3Ltt01wY98+c9MMny/nP8/4YRorfF/ysEKdGT/uw/mCu5uaPqk4zg1BTrMCR3a9tLb01imlrUCw0Nvel5+1ZcLC42d9raMn0fWL8DLZAAKqQR/59Gdez/AMkSxDLFM+XAjEDsJYaCUwfMySOdyKJR60N3Tz7LF8vu/fT20uyMAP3/23q4gaO6oVavQAAghkFoCWkNpBUIJGDVgqcyBHz7f57d9BiKF18JQ4L6N61GtNTE/X8XM9BQiCXAhQBIsWx2HlLcD+KqtAEGTP7Bh0wYMrFsHmi6AeT4aQQhAI+vn4zo+cgZnTxxHOsOebjsAISTT010EYY6xCxAK3/QflIGYY60k+u+4G9Url1Gfmxpo+wz4hVzN9VJJoDFArG344jVzXO5bA89LV9oKMPLTFw+v7e/7hxKaBBNjq1bBdV/lYqkbpXJpsK0AEKmz+UKBXQtSyqYmDyXtE7ROrjkOQyrtnWgrwJ1PPTcvomhMk9aHJrq1CMpUSyFBlDG0OYyuaCH2t30GGvXwFUTitFYCiDigI0BFJtCaQyt7Ls2Df3LbEy/+0XaAwa0vVLSODumIm+wmFA8AFQKyaWwrh+J1kJAf7NhPscucT8NmXSsTqIWBEKbKKLaKAkyMXgxy92492TEAf/2OqYmZuREluAkMDUC8EsYN8EYN1Tr/EUadAkggSv1HR8cmbfgigGnJ8ZOnkCl0Hev4fiDt52XaH8TZC+dgB1JyjkYgcPs994OBBh0HYJSUcsVVSKV9TF46j1p1Dr1ri8hmC+A8KHW0BVEkszS35hnKHLiOC8d1TXXAzDkBkCoMvGreU2w7wEyluX50/PLB6dnapEx1OYKk4z2AFAKxCIPKroab7yuKSI5Wa8HHs7WFzf9pSyaEdGZmF14WEd+bzaS3uA6DlDLeiDBGIYRCo74AqYFC3kcq5SLtubgqpRS0xi8APcAYDrsu47cMMFGpPXR5tvp9/+quEqUElFKwVtVaGQCGq7L3W6jrpZMXDIQGCGytEOhns9n00ZsCzM/XBsZn6sd7y36ZUgbHhBl6E7JU4NKSUkFbCApTUXFd9oiXcs7fcAZGLs5+013IlAkImAlyHQpDb5OhlQJJKG7JdvUI0VBSW/CeSMhDNxzCaR6VXNfZqE2wNGHMhNtEjcQgMcotG7YSChW3QyEU4vG5+erAkgD1sStvdJd8CiT908mO19YVGyZYSWNlW2fz6K4lAYKQv04IvTZIUWTDSXzzSiVbM6ZhgQAu1PNLAkioXteNF6D1ZomUw9AMhT1fkaXUtp2mwojYod60JMCvv//92OkzYxO1eghGSUxtJbi0PWxZx5bx8aLl4muta0nrokjGEM2mwJ/nJi4dGT62+aa/Ax8e+K5v8K6+fat7i9vKXbl1XsrNOQ6hSoEomcyFlK1wO+1IYJnjgNqVptAykpJzWWsEzdHx6eq3f10Y++itPdsrK/9z2tLQ0LAnGOvlUH0eI2sU1VqGagKaTHZ5vVN79mwRWIb+Bde9CdrNEBZYAAAAAElFTkSuQmCC">
+                        </div>
+                    </li>
+                    <li id="200" class="card bg-danger" data-toggle="modal"
+                        data-target="#myModal">
+                        <div class="cardTitle">
+                            ueffing.net
+                        </div>
+                        <div class="cardContent">
+                            visit http://www.ueffing.net
+                        </div>
+                        <div class="user">
+                            <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAADdgAAA3YBfdWCzAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAATJSURBVHjaxZdbiBtVHMa/c85MJsnkstlst9vtVrzg4qWttfUKPhSUIlgqfRCrCOJDqxX0Rfumj6Lgg9CFvqnFKmLBlyouKAj6UBWsFHqRtrq17d432+4mm0zmnDnneM5M2u3Ltt01wY98+c9MMny/nP8/4YRorfF/ysEKdGT/uw/mCu5uaPqk4zg1BTrMCR3a9tLb01imlrUCw0Nvel5+1ZcLC42d9raMn0fWL8DLZAAKqQR/59Gdez/AMkSxDLFM+XAjEDsJYaCUwfMySOdyKJR60N3Tz7LF8vu/fT20uyMAP3/23q4gaO6oVavQAAghkFoCWkNpBUIJGDVgqcyBHz7f57d9BiKF18JQ4L6N61GtNTE/X8XM9BQiCXAhQBIsWx2HlLcD+KqtAEGTP7Bh0wYMrFsHmi6AeT4aQQhAI+vn4zo+cgZnTxxHOsOebjsAISTT010EYY6xCxAK3/QflIGYY60k+u+4G9Url1Gfmxpo+wz4hVzN9VJJoDFArG344jVzXO5bA89LV9oKMPLTFw+v7e/7hxKaBBNjq1bBdV/lYqkbpXJpsK0AEKmz+UKBXQtSyqYmDyXtE7ROrjkOQyrtnWgrwJ1PPTcvomhMk9aHJrq1CMpUSyFBlDG0OYyuaCH2t30GGvXwFUTitFYCiDigI0BFJtCaQyt7Ls2Df3LbEy/+0XaAwa0vVLSODumIm+wmFA8AFQKyaWwrh+J1kJAf7NhPscucT8NmXSsTqIWBEKbKKLaKAkyMXgxy92492TEAf/2OqYmZuREluAkMDUC8EsYN8EYN1Tr/EUadAkggSv1HR8cmbfgigGnJ8ZOnkCl0Hev4fiDt52XaH8TZC+dgB1JyjkYgcPs994OBBh0HYJSUcsVVSKV9TF46j1p1Dr1ri8hmC+A8KHW0BVEkszS35hnKHLiOC8d1TXXAzDkBkCoMvGreU2w7wEyluX50/PLB6dnapEx1OYKk4z2AFAKxCIPKroab7yuKSI5Wa8HHs7WFzf9pSyaEdGZmF14WEd+bzaS3uA6DlDLeiDBGIYRCo74AqYFC3kcq5SLtubgqpRS0xi8APcAYDrsu47cMMFGpPXR5tvp9/+quEqUElFKwVtVaGQCGq7L3W6jrpZMXDIQGCGytEOhns9n00ZsCzM/XBsZn6sd7y36ZUgbHhBl6E7JU4NKSUkFbCApTUXFd9oiXcs7fcAZGLs5+013IlAkImAlyHQpDb5OhlQJJKG7JdvUI0VBSW/CeSMhDNxzCaR6VXNfZqE2wNGHMhNtEjcQgMcotG7YSChW3QyEU4vG5+erAkgD1sStvdJd8CiT908mO19YVGyZYSWNlW2fz6K4lAYKQv04IvTZIUWTDSXzzSiVbM6ZhgQAu1PNLAkioXteNF6D1ZomUw9AMhT1fkaXUtp2mwojYod60JMCvv//92OkzYxO1eghGSUxtJbi0PWxZx5bx8aLl4muta0nrokjGEM2mwJ/nJi4dGT62+aa/Ax8e+K5v8K6+fat7i9vKXbl1XsrNOQ6hSoEomcyFlK1wO+1IYJnjgNqVptAykpJzWWsEzdHx6eq3f10Y++itPdsrK/9z2tLQ0LAnGOvlUH0eI2sU1VqGagKaTHZ5vVN79mwRWIb+Bde9CdrNEBZYAAAAAElFTkSuQmCC">
+                        </div>
+                    </li>
+                    <li id="300" class="card bg-danger" data-toggle="modal"
+                        data-target="#myModal">
+                        <div class="cardTitle">
+                            netpanzer
+                        </div>
+                        <div class="cardContent">
+                            visit http://www.netpanzer.info
+                        </div>
+                        <div class="user">
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+            <a class="add" href="#">
+                <button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
+            </a>
+            <div class="clearfix"><br></div>
+        </div>
+
+        <div id="feature_requests" class="list">
+            <div class="foo">
+                <h1>Feature Requests</h1>
+                <ul class="sortable droptrue">
+                    <li id="400" class="card bg-default" data-toggle="modal"
+                        data-target="#myModal">
+                        <div class="cardTitle">
+                            myMVC
+                        </div>
+                        <div class="cardContent">
+                            visit https://www.mymvc.org
+                        </div>
+                        <div class="user">
+                            <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAADdgAAA3YBfdWCzAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAATJSURBVHjaxZdbiBtVHMa/c85MJsnkstlst9vtVrzg4qWttfUKPhSUIlgqfRCrCOJDqxX0Rfumj6Lgg9CFvqnFKmLBlyouKAj6UBWsFHqRtrq17d432+4mm0zmnDnneM5M2u3Ltt01wY98+c9MMny/nP8/4YRorfF/ysEKdGT/uw/mCu5uaPqk4zg1BTrMCR3a9tLb01imlrUCw0Nvel5+1ZcLC42d9raMn0fWL8DLZAAKqQR/59Gdez/AMkSxDLFM+XAjEDsJYaCUwfMySOdyKJR60N3Tz7LF8vu/fT20uyMAP3/23q4gaO6oVavQAAghkFoCWkNpBUIJGDVgqcyBHz7f57d9BiKF18JQ4L6N61GtNTE/X8XM9BQiCXAhQBIsWx2HlLcD+KqtAEGTP7Bh0wYMrFsHmi6AeT4aQQhAI+vn4zo+cgZnTxxHOsOebjsAISTT010EYY6xCxAK3/QflIGYY60k+u+4G9Url1Gfmxpo+wz4hVzN9VJJoDFArG344jVzXO5bA89LV9oKMPLTFw+v7e/7hxKaBBNjq1bBdV/lYqkbpXJpsK0AEKmz+UKBXQtSyqYmDyXtE7ROrjkOQyrtnWgrwJ1PPTcvomhMk9aHJrq1CMpUSyFBlDG0OYyuaCH2t30GGvXwFUTitFYCiDigI0BFJtCaQyt7Ls2Df3LbEy/+0XaAwa0vVLSODumIm+wmFA8AFQKyaWwrh+J1kJAf7NhPscucT8NmXSsTqIWBEKbKKLaKAkyMXgxy92492TEAf/2OqYmZuREluAkMDUC8EsYN8EYN1Tr/EUadAkggSv1HR8cmbfgigGnJ8ZOnkCl0Hev4fiDt52XaH8TZC+dgB1JyjkYgcPs994OBBh0HYJSUcsVVSKV9TF46j1p1Dr1ri8hmC+A8KHW0BVEkszS35hnKHLiOC8d1TXXAzDkBkCoMvGreU2w7wEyluX50/PLB6dnapEx1OYKk4z2AFAKxCIPKroab7yuKSI5Wa8HHs7WFzf9pSyaEdGZmF14WEd+bzaS3uA6DlDLeiDBGIYRCo74AqYFC3kcq5SLtubgqpRS0xi8APcAYDrsu47cMMFGpPXR5tvp9/+quEqUElFKwVtVaGQCGq7L3W6jrpZMXDIQGCGytEOhns9n00ZsCzM/XBsZn6sd7y36ZUgbHhBl6E7JU4NKSUkFbCApTUXFd9oiXcs7fcAZGLs5+013IlAkImAlyHQpDb5OhlQJJKG7JdvUI0VBSW/CeSMhDNxzCaR6VXNfZqE2wNGHMhNtEjcQgMcotG7YSChW3QyEU4vG5+erAkgD1sStvdJd8CiT908mO19YVGyZYSWNlW2fz6K4lAYKQv04IvTZIUWTDSXzzSiVbM6ZhgQAu1PNLAkioXteNF6D1ZomUw9AMhT1fkaXUtp2mwojYod60JMCvv//92OkzYxO1eghGSUxtJbi0PWxZx5bx8aLl4muta0nrokjGEM2mwJ/nJi4dGT62+aa/Ax8e+K5v8K6+fat7i9vKXbl1XsrNOQ6hSoEomcyFlK1wO+1IYJnjgNqVptAykpJzWWsEzdHx6eq3f10Y++itPdsrK/9z2tLQ0LAnGOvlUH0eI2sU1VqGagKaTHZ5vVN79mwRWIb+Bde9CdrNEBZYAAAAAElFTkSuQmCC">
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+            <a class="add" href="#">
+                <button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
+            </a>
+            <div class="clearfix"><br></div>
+        </div>
+
+        <div id="doing" class="list">
+            <div class="foo">
+                <h1>Doing</h1>
+                <ul class="sortable droptrue">
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+            <a class="add" href="#">
+                <button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
+            </a>
+            <div class="clearfix"><br></div>
+        </div>
+
+        <div id="done" class="list">
+            <div class="foo">
+                <h1>Done</h1>
+                <ul class="sortable droptrue">
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+            <a class="add" href="#">
+                <button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
+            </a>
+            <div class="clearfix"><br></div>
+        </div>
+
+        <div id="rejected" class="list">
+            <div class="foo">
+                <h1>Rejected</h1>
+                <ul class="sortable droptrue">
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+            <a class="add" href="#">
+                <button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
+            </a>
+            <div class="clearfix"><br></div>
+        </div>
+
+    </div>
+
+    <div id="back"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="myModal" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            </div>
+            <div class="modal-body">
+                …
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default"
+                        data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- templates -->
+<div id="templateList" class="template">
+    <div class="list ui-sortable-handle">
+        <div class="foo">
+            <h1>…</h1>
+            <ul class="sortable droptrue">
+            </ul>
+        </div>
+        <div class="clearfix"></div>
+        <a class="add" href="#">
+            <button class="btn btn-default"><i class="fa fa-plus"></i> Card</button>
+        </a>
+        <div class="clearfix"><br></div>
+    </div>
+</div>
+<div id="templateCard" class="template">
+    <ul class="templateCard sortable droptrue ui-sortable">
+        <li id="templateCardId" class="card bg-default ui-sortable-handle" data-toggle="modal" data-target="#myModal">
+            <div class="cardTitle">
+                <textarea class="form-control"></textarea>
+            </div>
+            <div class="cardContent"></div>
+        </li>
+    </ul>
+    <div class="templateCard templateAdd">
+        <div class="clearfix"></div>
+        <button data-id="" class="saveAdd btn btn-success"><i class="fa fa-save"></i> Save</button>
+        <button data-id="" class="undo btn btn-muted"><i class="fa fa-undo"></i> Undo</button>
+    </div>
+</div>
+<div id="templateAddCardTitle" class="template">
+    <form class="form-inline">
+        <div class="form-group">
+            <input type="email" class="form-control" id="exampleInputEmail2" placeholder="foo.bar@example.com">
+        </div>
+    </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/json2/20150503/json2.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jStorage/0.4.12/jstorage.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.0.2/showdown.min.js" type="text/javascript"></script>
+
+<script>
+
+    // autolink
+    (function(){var h=[].slice;String.prototype.autoLink=function(){var b,f,d,a,e,g;a=1<=arguments.length?h.call(arguments,0):[];e=/(^|[\s\n]|<br\/?>)((?:https?|ftp):\/\/[\-A-Z0-9+\u0026\u2019@#\/%?=()~_|!:,.;]*[\-A-Z0-9+\u0026@#\/%=~()_|])/gi;if(!(0<a.length))return this.replace(e,"$1<a href='$2'>$2</a>");d=a[0];f=function(){var c;c=[];for(b in d)g=d[b],"callback"!==b&&c.push(" "+b+"='"+g+"'");return c}().join("");return this.replace(e,function(c,b,a){c=("function"===typeof d.callback?d.callback(a):void 0)||"<a href='"+a+"'"+f+">"+a+"</a>";return""+b+c})}}).call(this);
+
+    // local storage saver
+    function getFromLocalStorage()
+    {
+        var sValue = $.jStorage.get('HKB');
+
+        if (sValue) {
+            $('#board .lists').html(sValue);
+        }
+    }
+
+    function saveToLocalStorage()
+    {
+        var oBoard = $('#board .lists').html();
+        $.jStorage.set('HKB', oBoard);
+    }
+
+    function emptyLocalStorage()
+    {
+        $.jStorage.deleteKey('HKB');
+    }
+
+    $(document).ready(function() {
+
+        getFromLocalStorage();
+
+        var iCard = 999;
+
+        //If you have a highly dynamic page, you might try this option. It renders positions every time you move the mouse.
+        //if(draggable.options.refreshPositions) $.ui.ddmanager.prepareOffsets(draggable, event);
+
+        $('#emptyLocalStorage').on('click', function(event){
+            emptyLocalStorage();
+            location.reload();
+        });
+
+        /**
+         * add list
+         */
+        $('#addListButton').on ('click', function (event){
+            $('#addList input').removeClass('hide').focus();
+            $('#addList button').addClass('hide');
+        });
+
+        $('#addList input').on ('blur', function (event){
+            $('#addList input').addClass('hide');
+            $('#addList button').removeClass('hide');
+        });
+
+        $('#addList input').keypress(function (event) {
+
+            if (event.which == 13) {
+
+                var sNewList = $('#addListInput').val();
+
+                if ('' === sNewList)
+                {
+                    return false;
+                }
+
+                var sNewListId = sNewList.replace(/[^a-zA-Z0-9]/g,'_').replace(/\s+/g, '_').toLowerCase();
+
+                // set
+                $('#templateList .list').attr('id', sNewListId);
+                $('#templateList .list .foo h1').html(sNewList);
+
+                // copy
+                var sMarkup = $($('#templateList').html());
+                $('#board .lists').append(sMarkup);
+
+//						cardSortable();
+                addCard(sNewListId);	// $('#addListInput').val()
+//						getAllPositions();
+
+                $('#addListInput').val('');
+                return false;
+            }
+        });
+
+        /**
+         * Markdown
+         * @type showdown.Converter
+         */
+        var oConverter = new showdown.Converter();
+        $('.cardContent').each(function( index ) {
+
+            $( this ).html(
+                oConverter.makeHtml(
+                    $( this ).html().autoLink()
+                )
+            );
+        });
+
+        function getAllPositions()
+        {
+            var aPos = [];
+            var iCnt = 0;
+            var iCnt2 = 0;
+            var aTmp = [];
+            var aTmp2 = [];
+
+            $('.lists').children('.list').each(function () {
+
+                var sListId = $(this).attr('id');
+                console.log(sListId);
+                aTmp = [];
+                aTmp2 = [];
+                iCnt2 = 0;
+
+                $('#' + $(this).attr('id') + ' .foo ul.sortable').children('li').each(function () {
+                    var sCardId = $(this).attr('id');
+                    aTmp2[iCnt2] = sCardId;
+                    console.log('- ' + sCardId);
+                    iCnt2++;
+                });
+
+                aTmp[sListId] = aTmp2;
+                aPos[iCnt] = aTmp;
+
+                iCnt++;
+            });
+
+            return aPos;
+        }
+
+        // List sortable
+        function listSortable()
+        {
+            $(".lists").sortable({
+
+                refreshPositions: true,
+                placeholder: "ui-state-highlight",
+                connectWith: "div",
+                start: function(event, ui) {
+                    ui.item.startPos = ui.item.index();
+                    ui.item.id = $(ui.item).attr('id');
+                },
+                update: function(event, ui) {
+                },
+                stop: function(event, ui) {
+                    getAllPositions();
+                }
+            });
+        }
+
+        function cardSortable()
+        {
+            // Card sortable
+            $("ul.droptrue").sortable({
+
+                refreshPositions: true,
+                connectWith: "ul",
+                start: function(event, ui) {
+                    ui.item.startPos = ui.item.index();
+                    saveToLocalStorage();
+                },
+                update: function(event, ui) {
+                    saveToLocalStorage();
+                },
+                stop: function(event, ui) {
+                    getAllPositions();
+                    saveToLocalStorage();
+                }
+            });
+        }
+
+        $("ul.dropfalse").sortable({
+            connectWith: "ul",
+            dropOnEmpty: false
+        });
+
+
+        // disable cards
+//				$("#sortable1, #sortable2, #sortable3").disableSelection();
+
+
+//				$(".sortable").on( "sortactivate", function( event, ui ) {
+//					
+//					console.log(event);
+//					console.log(ui);
+//				});
+
+
+        /**
+         * modal
+         */
+        $('#myModal').on('show.bs.modal', function (event) {
+            var sId = $(event.relatedTarget).attr('id');
+            $('#myModal .modal-title').html($('#' + sId + ' .cardTitle').text());
+            $('#myModal .modal-body').html($('#' + sId + ' .cardContent').html());
+        });
+
+        $('#myModal').on('hide.bs.modal', function (event) {
+            $('#myModal .modal-body').html('');
+        });
+
+        function saveAdd()
+        {
+            $('.saveAdd').on ('click', function (event){
+
+                listSortable();
+                cardSortable();
+
+                var iCardId = $(this).attr('data-id');
+
+                // copy content from textarea to is surrounding div
+                var sTextareaContent = $('#' + iCardId + ' .cardTitle textarea').val();
+                $('#' + iCardId + ' .cardTitle textarea').remove();
+                $('#' + iCardId + ' .cardTitle').text(sTextareaContent);
+                $('#' + iCardId + ' .cardContent').text(sTextareaContent);
+
+                // templateCard
+                $('.lists .list .foo .templateCard').removeClass('templateCard');
+
+                // remove buttons [Add] [undo]
+                $('.add' + iCardId).remove();
+
+                saveToLocalStorage();
+            });
+        }
+
+        /**
+         * add card
+         */
+        function addCard(element)
+        {
+            if ('undefined' !== typeof element) {
+                var myTarget = '#' + element + ' .add';
+            }
+            else {
+                var myTarget = ' .add';
+            }
+
+            $(myTarget).on ('click', function (event){
+
+                iCard++;
+
+                // identify list
+                var oCurr = event.currentTarget;
+                var sListId = $(oCurr).parent().attr('id');
+
+                // place a new card
+                var sTemplate = $('#templateCard').html();
+//						console.log(sTemplate);
+                sTemplate = sTemplate.replace('sortable', iCard + ' sortable');
+                sTemplate = sTemplate.replace('templateCardId', iCard);
+                sTemplate = sTemplate.replace('templateAdd', 'templateAdd add' + iCard + ' ' + iCard);
+                sTemplate = sTemplate.replace(/data-id=""/g, 'data-id="' + iCard + '"');
+
+                $('#' + sListId + ' .foo').append(sTemplate);
+
+//						// remove blurred var new cards on list
+//						$('#' + sListId + ' .foo').focusout(function() {
+////							$('.' + iCard).remove();
+//							console.log(sListId + ' has lost any focus');
+//						});
+
+                saveAdd();
+                undo();
+                cardSortable();
+
+                $('#' + sListId + ' .foo .card .cardTitle textarea').focus();
+
+                saveToLocalStorage();
+            });
+        }
+
+        function undo()
+        {
+            $('.undo').on ('click', function (event){
+                var iCard = $(this).attr('data-id');
+                $('.' + iCard).remove();
+                saveToLocalStorage();
+            });
+
+            $('#back').on ('click', function (event){
+                $('.lists .list .templateCard').remove();
+                saveToLocalStorage();
+            });
+        }
+
+        listSortable();
+        cardSortable();
+        saveAdd();
+        addCard();
+        undo();
+
+    });
+</script>
+</body>
+
+</html>
