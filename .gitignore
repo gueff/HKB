@@ -1,0 +1,12 @@
+_gitPush.sh
+.git
+.idea
+.bak
+.trash
+.env
+.test
+.ddev
+.phpstorm.meta.php
+*.sh
+*.mp4
+*.sql
