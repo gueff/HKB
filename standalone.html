@@ -173,43 +173,44 @@
         .hide {
             display: none !important;
         }
+        .shadow {
+            box-shadow: 0px 0px 10px 1px rgba(150, 150, 150, 0.25);
+        }
     </style>
 </head>
 
 <body>
 
-<nav class="navbar navbar-default navbar-fixed-top">
+<nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top shadow">
     <div class="container-fluid">
-        <div class="navbar-header">
+        <a class="navbar-brand" href="#">
             <h3>HKB <small>HTML5 Kanban Board</small></h3>
-        </div>
-
-        <!-- add button -->
-        <div id="addList" class="addItem form-inline padding0_25 pull-left">
-            <button id="addListButton" class="btn btn-default pull-left">
-                <i class="fa fa-plus"></i> List
-            </button>
-            <input id="addListInput" type="text" class="form-control pull-left hide" value="" placeholder="name">
-        </div>
-        <!--				<input type="color" value="#ffff88" list="colors" />
-                        <datalist id="colors">
-                            <option>#dff0d8</option>
-                            <option>#d9edf7</option>
-                            <option>#ffff88</option>
-                            <option>#f2dede</option>
-                            <option>#808080</option>
-                        </datalist>-->
-
-        <div class="addItem form-inline padding0_25 pull-left">
-            <button id="emptyLocalStorage" class="btn btn-default pull-left">
-                <i class="fa fa-trash"></i> flush Saved Settings
-            </button>
-            <input id="addListInput" type="text" class="form-control pull-left hide" value="" placeholder="name">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item btn btn-success">
+                    <a class="nav-link active" aria-current="page" href="#">
+                        <i class="fa fa-plus"></i> List
+                    </a>
+                </li>
+                <li class="nav-item btn btn-success">
+                    <a class="nav-link" href="#">
+                        <i class="fa fa-trash"></i> flush Saved Settings
+                    </a>
+                </li>
+            </ul>
+            <form class="d-flex" role="search" action="">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
         </div>
     </div>
 </nav>
 
-<nav class="navbar navbar-default navbar-fixed-bottom">
+<nav class="navbar border-bottomx border-bodyx fixed-bottom bg-white shadow">
     <div class="container-fluid pull-right"><br />
         See at <i class="fa fa-github-square"></i> github: <a href="https://github.com/gueff/HKB/tree/2.x" target="_blank"> https://github.com/gueff/HKB/tree/2.x</a>&nbsp;|&nbsp;
         <a href="http://www.ueffing.net">
@@ -218,6 +219,9 @@
         </a>
     </div>
 </nav>
+
+<br>
+<br>
 
 <div id="board" class="container-fluid">
 
